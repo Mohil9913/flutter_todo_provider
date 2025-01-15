@@ -8,6 +8,8 @@ class TodoHome extends StatelessWidget {
 
   final TextEditingController taskTitle = TextEditingController();
   final TextEditingController taskDescription = TextEditingController();
+  final TextEditingController editTitle = TextEditingController();
+  final TextEditingController editDescription = TextEditingController();
   final ValueNotifier<bool> showWarning = ValueNotifier(false);
 
   void addNewTask(
@@ -91,6 +93,100 @@ class TodoHome extends StatelessWidget {
                       Navigator.pop(context);
                     },
                     child: Text('Add Task'),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void editTask(
+    BuildContext context,
+    TaskProvider taskProvider,
+    index,
+  ) {
+    editTitle.text = taskProvider.tasks[index].title;
+    editDescription.text = taskProvider.tasks[index].description;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            30,
+            20,
+            MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  'Edit ${taskProvider.tasks[index].title}',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              SizedBox(height: 20),
+              TextField(
+                controller: editTitle,
+                focusNode: FocusNode(),
+                decoration: InputDecoration(hintText: 'Task Name'),
+              ),
+              SizedBox(height: 20),
+
+              TextField(
+                controller: editDescription,
+                focusNode: FocusNode(),
+                decoration: InputDecoration(hintText: 'Task Description'),
+                minLines: 3,
+                maxLines: 5,
+              ),
+              SizedBox(height: 20),
+
+              // Display warning if task title is empty
+              ValueListenableBuilder<bool>(
+                valueListenable: showWarning,
+                builder: (context, value, child) {
+                  if (!value) {
+                    return Container();
+                  }
+                  return Text(
+                    'Text Fields can\'t be empty',
+                    style: TextStyle(color: Colors.red),
+                  );
+                },
+              ),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SizedBox(
+                  width: double.maxFinite,
+                  child: TextButton(
+                    onPressed: () {
+                      if (editTitle.text.trim() == '' ||
+                          editDescription.text.trim() == '') {
+                        showWarning.value = true;
+
+                        Future.delayed(Duration(seconds: 3), () {
+                          showWarning.value = false;
+                        });
+                        return;
+                      }
+                      taskProvider.editTask(
+                          editTitle.text, editDescription.text, index);
+                      editTitle.clear();
+                      editDescription.clear();
+                      showWarning.value = false;
+                      Navigator.pop(context);
+                    },
+                    child: Text('Update Task'),
                   ),
                 ),
               ),
@@ -188,33 +284,64 @@ class TodoHome extends StatelessWidget {
                 final task = taskProvider.tasks[index];
                 return Column(
                   children: [
-                    ListTile(
-                      title: Text(task.title,
-                          style: task.isCompleted
-                              ? TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Colors.grey)
-                              : null),
-                      subtitle: Text(task.description,
-                          style: task.isCompleted
-                              ? TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Colors.grey)
-                              : null),
-                      leading: Checkbox(
-                        value: task.isCompleted,
-                        onChanged: (value) {
-                          taskProvider.toggleTaskStatus(index);
-                        },
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 8,
                       ),
-                      trailing: IconButton(
-                        onPressed: () {
-                          confirmDeleteTask(context, taskProvider, index);
-                        },
-                        icon: Icon(
-                          Icons.delete,
-                          color: Colors.red,
-                        ),
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: task.isCompleted,
+                            onChanged: (value) {
+                              taskProvider.toggleTaskStatus(index);
+                            },
+                          ),
+                          SizedBox(
+                            width: 8,
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                editTask(context, taskProvider, index);
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(task.title,
+                                      style: task.isCompleted
+                                          ? TextStyle(
+                                              decoration:
+                                                  TextDecoration.lineThrough,
+                                              color: Colors.grey)
+                                          : null),
+                                  SizedBox(
+                                    height: 8,
+                                  ),
+                                  Text(task.description,
+                                      style: task.isCompleted
+                                          ? TextStyle(
+                                              decoration:
+                                                  TextDecoration.lineThrough,
+                                              color: Colors.grey)
+                                          : null),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 8,
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              confirmDeleteTask(context, taskProvider, index);
+                            },
+                            icon: Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     Padding(

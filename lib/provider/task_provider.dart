@@ -2,31 +2,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:todo_provider/model/task_model.dart';
 
 class TaskProvider with ChangeNotifier {
-  final List<Task> _tasks = [
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-    Task(title: 'demo', description: 'demo123'),
-  ];
+  final List<Task> _tasks = [];
 
   //getter to get list of tasks
   List<Task> get tasks => _tasks;
 
   void addTask(String title, String description) {
     _tasks.add(Task(title: title, description: description));
+    notifyListeners();
+  }
+
+  void editTask(String title, String description, int index) {
+    _tasks[index] = Task(title: title, description: description);
     notifyListeners();
   }
 
